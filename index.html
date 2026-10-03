@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>मनरेगा नोंदणी यादी - आडगाव</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,"Noto Sans Devanagari",sans-serif;
+    background:#f4f6f9;
+    color:#222;
+}
+
+/* Header */
+.header{
+    background:#ffffff;
+    padding:20px 15px;
+    text-align:center;
+    border-bottom:1px solid #ddd;
+}
+
+.header h1{
+    margin:0 0 10px;
+    font-size:25px;
+}
+
+.header p{
+    margin:5px 0;
+    color:#555;
+}
+
+/* Search */
+.search-area{
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:#f4f6f9;
+    padding:15px 10px 10px;
+}
+
+.search-box{
+    max-width:900px;
+    margin:auto;
+    position:relative;
+}
+
+.search-box input{
+    width:100%;
+    padding:16px 50px 16px 18px;
+    font-size:18px;
+    border:2px solid #1769aa;
+    border-radius:10px;
+    outline:none;
+    background:white;
+}
+
+.search-box input:focus{
+    border-color:#0b4f82;
+    box-shadow:0 0 5px rgba(23,105,170,.25);
+}
+
+/* Buttons */
+.buttons{
+    text-align:center;
+    padding:5px 10px 12px;
+}
+
+button{
+    border:0;
+    border-radius:7px;
+    padding:11px 20px;
+    margin:4px;
+    background:#1769aa;
+    color:white;
+    font-size:15px;
+    cursor:pointer;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.clear{
+    background:#555;
+}
+
+/* Status */
+.status{
+    text-align:center;
+    padding:8px;
+    font-weight:bold;
+}
+
+/* Table */
+.table-container{
+    overflow:auto;
+    margin:0 10px 25px;
+    background:#fff;
+    border:1px solid #ccc;
+}
+
+table{
+    border-collapse:collapse;
+    width:100%;
+    min-width:1200px;
+    font-size:13px;
+}
+
+th,
+td{
+    border:1px solid #aaa;
+    padding:8px;
+    text-align:left;
+    vertical-align:top;
+}
+
+th{
+    background:#e8edf3;
+    font-weight:bold;
+    position:sticky;
+    top:74px;
+    z-index:10;
+}
+
+tr:nth-child(even){
+    background:#fafafa;
+}
+
+/* Mobile */
+@media(max-width:600px){
+
+    .header h1{
+        font-size:20px;
+    }
+
+    .header p{
+        font-size:13px;
+    }
+
+    .search-box input{
+        font-size:16px;
+    }
+
+    table{
+        font-size:12px;
+    }
+
+    th,
+    td{
+        padding:6px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+
+<h1>Registration Application Register</h1>
+
+<p>
+राज्य : <b>MAHARASHTRA</b>
+</p>
+
+<p>
+जिल्हा : <b>JALNA</b>
+&nbsp; | &nbsp;
+तालुका : <b>BHOKARDAN</b>
+</p>
+
+<p>
+ग्रामपंचायत : <b>Adgaon</b>
+</p>
+
+<p>
+एकूण नोंदी :
+<b id="total">लोड होत आहे...</b>
+</p>
+
+</div>
+
+
+<!-- SEARCH -->
+<div class="search-area">
+
+<div class="search-box">
+
+<input
+type="text"
+id="search"
+placeholder="🔍 नाव शोधा..."
+autocomplete="off"
+>
+
+</div>
+
+</div>
+
+
+<!-- BUTTONS -->
+<div class="buttons">
+
+<button onclick="showAll()">
+📋 सर्व यादी
+</button>
+
+<button class="clear" onclick="clearSearch()">
+✖ Search Clear
+</button>
+
+</div>
+
+
+<!-- STATUS -->
+<div class="status" id="status">
+यादी लोड होत आहे...
+</div>
+
+
+<!-- TABLE -->
+<div class="table-container">
+
+<table id="dataTable">
+
+<thead></thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
+
+
+<script>
+
+let allRows = [];
+
+let headers = [];
+
+let nameColumn = -1;
+
+
+/* Clean text */
+function cleanText(text){
+
+    return (text || "")
+        .replace(/\s+/g," ")
+        .trim();
+
+}
+
+
+/* Escape HTML */
+function escapeHTML(text){
+
+    return String(text)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* Create table */
+function drawTable(rows){
+
+    const thead =
+        document.querySelector("#dataTable thead");
+
+    const tbody =
+        document.querySelector("#dataTable tbody");
+
+
+    /* Header */
+
+    thead.innerHTML =
+        "<tr>" +
+
+        headers.map(function(header){
+
+            return "<th>" +
+                escapeHTML(header) +
+                "</th>";
+
+        }).join("") +
+
+        "</tr>";
+
+
+    /* Rows */
+
+    tbody.innerHTML =
+        rows.map(function(row){
+
+            return "<tr>" +
+
+                row.map(function(cell){
+
+                    return "<td>" +
+                        escapeHTML(cell) +
+                        "</td>";
+
+                }).join("") +
+
+                "</tr>";
+
+        }).join("");
+
+
+    /* Status */
+
+    document.getElementById("status").innerText =
+        "दिसणाऱ्या नोंदी : " + rows.length;
+
+}
+
+
+/* Search */
+
+function searchName(){
+
+    const searchValue =
+        cleanText(
+            document.getElementById("search").value
+        ).toLowerCase();
+
+
+    if(searchValue === ""){
+
+        drawTable(allRows);
+
+        return;
+
+    }
+
+
+    const filtered =
+        allRows.filter(function(row){
+
+            if(nameColumn < 0){
+
+                return false;
+
+            }
+
+            const name =
+                cleanText(row[nameColumn])
+                .toLowerCase();
+
+            return name.includes(searchValue);
+
+        });
+
+
+    drawTable(filtered);
+
+}
+
+
+/* Show all */
+
+function showAll(){
+
+    document.getElementById("search").value = "";
+
+    drawTable(allRows);
+
+}
+
+
+/* Clear */
+
+function clearSearch(){
+
+    document.getElementById("search").value = "";
+
+    drawTable(allRows);
+
+    document.getElementById("search").focus();
+
+}
+
+
+/* Search while typing */
+
+document
+.getElementById("search")
+.addEventListener(
+    "input",
+    searchName
+);
+
+
+/*
+================================================
+DATA LOAD
+================================================
+
+यानंतर data.html या फाइलमधून
+पूर्ण सरकारी यादी वाचली जाईल.
+*/
+
+fetch("data.html")
+
+.then(function(response){
+
+    if(!response.ok){
+
+        throw new Error(
+            "data.html सापडली नाही"
+        );
+
+    }
+
+    return response.text();
+
+})
+
+.then(function(html){
+
+    const parser =
+        new DOMParser();
+
+    const documentData =
+        parser.parseFromString(
+            html,
+            "text/html"
+        );
+
+
+    const tables =
+        documentData.querySelectorAll("table");
+
+
+    if(tables.length === 0){
+
+        throw new Error(
+            "Table सापडली नाही"
+        );
+
+    }
+
+
+    /*
+    सरकारी पेजमधील योग्य table शोधणे
+    */
+
+    let sourceTable = tables[0];
+
+    for(let table of tables){
+
+        if(
+            table.innerText.includes(
+                "Name of Applicant"
+            )
+        ){
+
+            sourceTable = table;
+
+            break;
+
+        }
+
+    }
+
+
+    const trs =
+        Array.from(
+            sourceTable.querySelectorAll("tr")
+        );
+
+
+    /*
+    Header शोधणे
+    */
+
+    let headerIndex =
+        trs.findIndex(function(tr){
+
+            return /Name of Applicant/i
+                .test(tr.innerText);
+
+        });
+
+
+    if(headerIndex < 0){
+
+        headerIndex = 0;
+
+    }
+
+
+    /*
+    Header तयार
+    */
+
+    headers =
+        Array.from(
+            trs[headerIndex]
+            .querySelectorAll("th,td")
+        )
+        .map(function(cell){
+
+            return cleanText(
+                cell.innerText
+            );
+
+        });
+
+
+    /*
+    Name column शोधणे
+    */
+
+    nameColumn =
+        headers.findIndex(
+            function(header){
+
+                return (
+                    /Name of Applicant/i
+                    .test(header)
+                    ||
+                    /^Name$/i
+                    .test(header)
+                );
+
+            }
+        );
+
+
+    /*
+    पूर्ण यादी
+    */
+
+    allRows =
+        trs
+        .slice(headerIndex + 1)
+        .map(function(tr){
+
+            return Array.from(
+                tr.querySelectorAll("th,td")
+            )
+            .map(function(cell){
+
+                return cleanText(
+                    cell.innerText
+                );
+
+            });
+
+        })
+        .filter(function(row){
+
+            return row.length > 0;
+
+        });
+
+
+    /*
+    Total
+    */
+
+    document.getElementById("total")
+        .innerText =
+        allRows.length;
+
+
+    /*
+    Show full list
+    */
+
+    drawTable(allRows);
+
+})
+
+.catch(function(error){
+
+    console.error(error);
+
+    document.getElementById("status")
+        .innerText =
+        "❌ data.html फाइल सापडली नाही.";
+
+});
+
+</script>
+
+</body>
+</html>
