@@ -313,13 +313,13 @@
         </div>
     </section>
 
-    <!-- Token Booking Section -->
+    <!-- Token Booking & Form Section -->
     <section id="token" class="py-16 bg-navy-950 text-white relative">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="text-center mb-10">
-                <span class="bg-saffron-500/20 text-saffron-400 font-bold tracking-wider uppercase text-xs px-3 py-1 rounded-full border border-saffron-500/30">ONLINE TOKEN SYSTEM</span>
-                <h2 class="text-3xl sm:text-4xl font-extrabold mt-3">ऑनलाइन टोकन व अपॉइंटमेंट घ्या</h2>
-                <p class="text-slate-300 mt-2 text-sm sm:text-base">रांगेत उभे राहण्याची गरज नाही! आधीच टोकन बुक करा व वेळेवर सेवा मिळवा.</p>
+                <span class="bg-saffron-500/20 text-saffron-400 font-bold tracking-wider uppercase text-xs px-3 py-1 rounded-full border border-saffron-500/30">ONLINE SERVICE & TOKEN FORM</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold mt-3">ऑनलाइन फॉर्म भरा व कागदपत्रे पाठवा</h2>
+                <p class="text-slate-300 mt-2 text-sm sm:text-base">माहिती भरा, कागदपत्रे अपलोड करा आणि थेट व्हॉट्सॲपवर पाठवा!</p>
             </div>
 
             <div class="bg-navy-900/90 backdrop-blur-md p-6 sm:p-10 rounded-3xl border border-navy-800 shadow-2xl">
@@ -360,8 +360,15 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-600 hover:to-saffron-700 text-white font-extrabold py-4 rounded-xl shadow-xl transition-all text-center text-lg flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-ticket"></i> टोकन जनरेट करा व कन्फर्म करा
+                    <!-- Document File Upload -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-300">आवश्यक कागदपत्रे अपलोड करा (फोटो किंवा PDF)</label>
+                        <input type="file" id="custDocFile" multiple accept="image/*,.pdf" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-4 py-3 text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-saffron-500 file:text-white hover:file:bg-saffron-600 text-sm cursor-pointer">
+                        <p class="text-[11px] text-slate-400 mt-1">टीप: तुम्ही आधार कार्ड, फोटो किंवा इतर कागदपत्रे येथे निवडू शकता.</p>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-extrabold py-4 rounded-xl shadow-xl transition-all text-center text-lg flex items-center justify-center gap-2">
+                        <i class="fa-brands fa-whatsapp text-xl"></i> व्हॉट्सॲपवर फॉर्म आणि कागदपत्रे पाठवा
                     </button>
                 </form>
             </div>
@@ -498,12 +505,12 @@
         </div>
     </div>
 
-    <!-- Retailer Dashboard Modal -->
+    <!-- Retailer Dashboard Modal (Includes Services List & Customer Tokens) -->
     <div id="dashboardModal" class="fixed inset-0 bg-navy-950/90 backdrop-blur-md hidden z-50 overflow-y-auto p-4 sm:p-6">
-        <div class="bg-white rounded-3xl max-w-4xl mx-auto p-6 sm:p-8 text-slate-900 shadow-2xl relative my-8">
+        <div class="bg-white rounded-3xl max-w-5xl mx-auto p-6 sm:p-8 text-slate-900 shadow-2xl relative my-8">
             <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
                 <div>
-                    <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 uppercase">Retailer Dashboard</span>
+                    <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 uppercase">Retailer Dashboard & Services</span>
                     <h3 id="dashShopTitle" class="text-2xl font-black text-navy-900 mt-1">दुканаचे नाव</h3>
                     <p id="dashOwnerText" class="text-xs text-slate-500 font-semibold">संचालक: --</p>
                 </div>
@@ -543,10 +550,35 @@
                 </div>
             </div>
 
+            <!-- Services Quick View for Retailer -->
+            <div class="mb-8 bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-6">
+                <h4 class="font-extrabold text-navy-900 text-base mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-saffron-500"></i> उपलब्ध ई-सेवा व लागणारी कागदपत्रे (यादी)
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                        <strong class="text-navy-900 block mb-1">१. पॅन कार्ड</strong>
+                        <p class="text-slate-500">आधार कार्ड, २ फोटो, मोबाईल नंबर</p>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                        <strong class="text-navy-900 block mb-1">२. पिक विमा</strong>
+                        <p class="text-slate-500">७/१२, ८-अ, आधार कार्ड, बँक पासबुक</p>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                        <strong class="text-navy-900 block mb-1">३. PVC स्मार्ट कार्ड</strong>
+                        <p class="text-slate-500">आधार / पॅन कार्ड नंबर किंवा PDF</p>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                        <strong class="text-navy-900 block mb-1">४. शासकीय दाखले</strong>
+                        <p class="text-slate-500">आधार, रेशन कार्ड, तलाठी दाखला</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Customer Tokens List Table -->
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-6">
                 <h4 class="font-extrabold text-navy-900 text-base mb-4 flex items-center justify-between">
-                    <span><i class="fa-solid fa-list-check text-saffron-500 me-2"></i> तुमच्या केंद्रावर आलेले ग्राहक व टोकन्स</span>
+                    <span><i class="fa-solid fa-users text-saffron-500 me-2"></i> ग्राहकांचे फॉर्म व टोकन्स रेकॉर्ड</span>
                     <span class="text-xs bg-navy-900 text-white px-2.5 py-1 rounded-lg font-normal">लाईव्ह डेटा</span>
                 </h4>
                 <div class="overflow-x-auto">
@@ -557,7 +589,7 @@
                                 <th class="p-3">ग्राहकाचे नाव</th>
                                 <th class="p-3">मोबाईल</th>
                                 <th class="p-3">सेवा</th>
-                                <th class="p-3 rounded-r-xl">तारीख व वेळ</th>
+                                <th class="p-3 rounded-r-xl">तारीख व कागदपत्र स्थिती</th>
                             </tr>
                         </thead>
                         <tbody id="dashTokensTableBody">
@@ -566,38 +598,6 @@
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Token Confirmation Modal -->
-    <div id="tokenModal" class="fixed inset-0 bg-navy-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 text-slate-900 shadow-2xl relative">
-            <button onclick="closeTokenModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold p-1">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <div class="text-center pb-4 border-b border-slate-100">
-                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-                <h3 class="text-xl font-extrabold text-navy-900">टोकन यशस्वीरीत्या बुक झाले!</h3>
-            </div>
-            <div class="my-5 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs sm:text-sm space-y-2">
-                <div class="flex justify-between border-b border-slate-200 pb-2">
-                    <span class="text-slate-500">टोकन नंबर:</span>
-                    <span id="resTokenNo" class="font-black text-saffron-600 font-mono text-base">AMS-2026</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-500">ग्राहकाचे नाव:</span>
-                    <span id="resName" class="font-bold text-slate-800">--</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-500">सेवा:</span>
-                    <span id="resService" class="font-bold text-slate-800">--</span>
-                </div>
-            </div>
-            <button onclick="closeTokenModal()" class="w-full bg-navy-900 hover:bg-navy-800 text-white font-bold py-3 rounded-xl text-sm transition-colors">
-                बंद करा (Close)
-            </button>
         </div>
     </div>
 
@@ -659,6 +659,7 @@
         let allTokens = JSON.parse(localStorage.getItem('ams_tokens') || '[]');
         let retailersDB = JSON.parse(localStorage.getItem('ams_retailers') || '[{"shop":"आदिती मल्टी सर्विसेस","owner":"सोहम साळवे","phone":"8237821650","pass":"123456"}]');
 
+        // Handle Form Submit & WhatsApp Message Redirect
         function handleTokenSubmit(e) {
             e.preventDefault();
             const name = document.getElementById('custName').value;
@@ -666,21 +667,36 @@
             const service = document.getElementById('custService').value;
             const date = document.getElementById('custDate').value;
             const time = document.getElementById('custTime').value;
+            const fileInput = document.getElementById('custDocFile');
+            
+            const hasFiles = fileInput.files.length > 0;
+            const fileInfo = hasFiles ? `${fileInput.files.length} फाईल/डॉक्यूमेंट जोडले आहेत` : 'कोणतीही फाईल जोडलेली नाही';
 
             const randomToken = 'AMS-' + Math.floor(1000 + Math.random() * 9000);
 
-            const newToken = { randomToken, name, phone, service, date, time };
+            const newToken = { randomToken, name, phone, service, date, time, fileInfo };
             allTokens.unshift(newToken);
             localStorage.setItem('ams_tokens', JSON.stringify(allTokens));
 
-            document.getElementById('resTokenNo').textContent = randomToken;
-            document.getElementById('resName').textContent = name;
-            document.getElementById('resService').textContent = service;
-            document.getElementById('tokenModal').classList.remove('hidden');
+            // WhatsApp Message Generation
+            const ownerWhatsAppNumber = '918237821650'; // तुमचा मोबाईल नंबर
+            const whatsappMessage = `*नवीन फॉर्म / टोकन बुकिंग*%0A%0A` +
+                `📌 टोकन क्र.: ${randomToken}%0A` +
+                `👤 ग्राहकाचे नाव: ${name}%0A` +
+                `📱 मोबाईल: ${phone}%0A` +
+                `🛠️ सेवा: ${service}%0A` +
+                `📅 तारीख व वेळ: ${date} [${time}]%0A` +
+                `📎 कागदपत्र स्थिती: ${fileInfo}%0A%0A` +
+                `कृपया हा अर्ज स्वीकृत करावा.`;
+
+            // Redirect to WhatsApp
+            const whatsappURL = `https://wa.me/${ownerWhatsAppNumber}?text=${whatsappMessage}`;
+            
+            alert('फॉर्म यशस्वीरीत्या सबमिट झाला! आता व्हॉट्सॲपवर माहिती पाठवली जात आहे.');
+            window.open(whatsappURL, '_blank');
+            
             document.getElementById('tokenForm').reset();
         }
-
-        function closeTokenModal() { document.getElementById('tokenModal').classList.add('hidden'); }
 
         // Login & Register Functions
         function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
@@ -737,7 +753,7 @@
                         <td class="p-3 font-bold text-slate-800">${t.name}</td>
                         <td class="p-3">${t.phone}</td>
                         <td class="p-3">${t.service}</td>
-                        <td class="p-3 text-slate-500">${t.date} [${t.time}]</td>
+                        <td class="p-3 text-slate-500">${t.date} <span class="block text-xs text-emerald-600 font-semibold">${t.fileInfo}</span></td>
                     `;
                     tbody.appendChild(tr);
                 });
