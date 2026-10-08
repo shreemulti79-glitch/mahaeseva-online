@@ -1,600 +1,864 @@
 <!DOCTYPE html>
 <html lang="mr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>मनरेगा नोंदणी यादी - आडगाव</title>
-
-<style>
-*{
-    box-sizing:border-box;
-}
-
-body{
-    margin:0;
-    font-family:Arial,"Noto Sans Devanagari",sans-serif;
-    background:#f4f6f9;
-    color:#222;
-}
-
-/* Header */
-.header{
-    background:#ffffff;
-    padding:20px 15px;
-    text-align:center;
-    border-bottom:1px solid #ddd;
-}
-
-.header h1{
-    margin:0 0 10px;
-    font-size:25px;
-}
-
-.header p{
-    margin:5px 0;
-    color:#555;
-}
-
-/* Search */
-.search-area{
-    position:sticky;
-    top:0;
-    z-index:100;
-    background:#f4f6f9;
-    padding:15px 10px 10px;
-}
-
-.search-box{
-    max-width:900px;
-    margin:auto;
-    position:relative;
-}
-
-.search-box input{
-    width:100%;
-    padding:16px 50px 16px 18px;
-    font-size:18px;
-    border:2px solid #1769aa;
-    border-radius:10px;
-    outline:none;
-    background:white;
-}
-
-.search-box input:focus{
-    border-color:#0b4f82;
-    box-shadow:0 0 5px rgba(23,105,170,.25);
-}
-
-/* Buttons */
-.buttons{
-    text-align:center;
-    padding:5px 10px 12px;
-}
-
-button{
-    border:0;
-    border-radius:7px;
-    padding:11px 20px;
-    margin:4px;
-    background:#1769aa;
-    color:white;
-    font-size:15px;
-    cursor:pointer;
-}
-
-button:hover{
-    opacity:.9;
-}
-
-.clear{
-    background:#555;
-}
-
-/* Status */
-.status{
-    text-align:center;
-    padding:8px;
-    font-weight:bold;
-}
-
-/* Table */
-.table-container{
-    overflow:auto;
-    margin:0 10px 25px;
-    background:#fff;
-    border:1px solid #ccc;
-}
-
-table{
-    border-collapse:collapse;
-    width:100%;
-    min-width:1200px;
-    font-size:13px;
-}
-
-th,
-td{
-    border:1px solid #aaa;
-    padding:8px;
-    text-align:left;
-    vertical-align:top;
-}
-
-th{
-    background:#e8edf3;
-    font-weight:bold;
-    position:sticky;
-    top:74px;
-    z-index:10;
-}
-
-tr:nth-child(even){
-    background:#fafafa;
-}
-
-/* Mobile */
-@media(max-width:600px){
-
-    .header h1{
-        font-size:20px;
-    }
-
-    .header p{
-        font-size:13px;
-    }
-
-    .search-box input{
-        font-size:16px;
-    }
-
-    table{
-        font-size:12px;
-    }
-
-    th,
-    td{
-        padding:6px;
-    }
-}
-</style>
-</head>
-
-<body>
-
-<!-- HEADER -->
-<div class="header">
-
-<h1>Registration Application Register</h1>
-
-<p>
-राज्य : <b>MAHARASHTRA</b>
-</p>
-
-<p>
-जिल्हा : <b>JALNA</b>
-&nbsp; | &nbsp;
-तालुका : <b>BHOKARDAN</b>
-</p>
-
-<p>
-ग्रामपंचायत : <b>Adgaon</b>
-</p>
-
-<p>
-एकूण नोंदी :
-<b id="total">लोड होत आहे...</b>
-</p>
-
-</div>
-
-
-<!-- SEARCH -->
-<div class="search-area">
-
-<div class="search-box">
-
-<input
-type="text"
-id="search"
-placeholder="🔍 नाव शोधा..."
-autocomplete="off"
->
-
-</div>
-
-</div>
-
-
-<!-- BUTTONS -->
-<div class="buttons">
-
-<button onclick="showAll()">
-📋 सर्व यादी
-</button>
-
-<button class="clear" onclick="clearSearch()">
-✖ Search Clear
-</button>
-
-</div>
-
-
-<!-- STATUS -->
-<div class="status" id="status">
-यादी लोड होत आहे...
-</div>
-
-
-<!-- TABLE -->
-<div class="table-container">
-
-<table id="dataTable">
-
-<thead></thead>
-
-<tbody></tbody>
-
-</table>
-
-</div>
-
-
-<script>
-
-let allRows = [];
-
-let headers = [];
-
-let nameColumn = -1;
-
-
-/* Clean text */
-function cleanText(text){
-
-    return (text || "")
-        .replace(/\s+/g," ")
-        .trim();
-
-}
-
-
-/* Escape HTML */
-function escapeHTML(text){
-
-    return String(text)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-
-}
-
-
-/* Create table */
-function drawTable(rows){
-
-    const thead =
-        document.querySelector("#dataTable thead");
-
-    const tbody =
-        document.querySelector("#dataTable tbody");
-
-
-    /* Header */
-
-    thead.innerHTML =
-        "<tr>" +
-
-        headers.map(function(header){
-
-            return "<th>" +
-                escapeHTML(header) +
-                "</th>";
-
-        }).join("") +
-
-        "</tr>";
-
-
-    /* Rows */
-
-    tbody.innerHTML =
-        rows.map(function(row){
-
-            return "<tr>" +
-
-                row.map(function(cell){
-
-                    return "<td>" +
-                        escapeHTML(cell) +
-                        "</td>";
-
-                }).join("") +
-
-                "</tr>";
-
-        }).join("");
-
-
-    /* Status */
-
-    document.getElementById("status").innerText =
-        "दिसणाऱ्या नोंदी : " + rows.length;
-
-}
-
-
-/* Search */
-
-function searchName(){
-
-    const searchValue =
-        cleanText(
-            document.getElementById("search").value
-        ).toLowerCase();
-
-
-    if(searchValue === ""){
-
-        drawTable(allRows);
-
-        return;
-
-    }
-
-
-    const filtered =
-        allRows.filter(function(row){
-
-            if(nameColumn < 0){
-
-                return false;
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>आदिती मल्टी सर्विसेस @ महा ई सेवा केंद्र, मादणी</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts - Baloo 2 for Marathi & Inter for English/Numbers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            800: '#14365d',
+                            900: '#0f2a4a',
+                            950: '#0a1d34'
+                        },
+                        saffron: {
+                            400: '#ff8533',
+                            500: '#ff6600',
+                            600: '#e65c00',
+                            700: '#cc5200'
+                        }
+                    },
+                    fontFamily: {
+                        marathi: ['"Baloo 2"', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
             }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Baloo 2', 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .bg-hero-gradient {
+            background: linear-gradient(135deg, #0f2a4a 0%, #1a4373 60%, #ff6600 100%);
+        }
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 30px -10px rgba(15, 42, 74, 0.2);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ff6600;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-saffron-500 selection:text-white">
 
-            const name =
-                cleanText(row[nameColumn])
-                .toLowerCase();
+    <div class="bg-navy-950 text-slate-200 text-xs sm:text-sm py-2 px-4 border-b border-navy-800">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center gap-4">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-saffron-400"></i> मु. पो. मादणी, ता. सिल्लोड, जि. छत्रपती संभाजीनगर</span>
+                <span class="hidden sm:inline-flex items-center gap-1.5"><i class="fa-regular fa-clock text-saffron-400"></i> सकाळी ०९:०० ते रात्री ०८:००</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="tel:+918237821650" class="hover:text-saffron-400 transition-colors flex items-center gap-1 font-semibold">
+                    <i class="fa-solid fa-phone text-saffron-400"></i> +91 82378 21650
+                </a>
+                <a href="https://wa.me/918237821650" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-0.5 rounded-full flex items-center gap-1 text-xs font-bold transition-all shadow-sm">
+                    <i class="fa-brands fa-whatsapp"></i> व्हॉट्सॲप
+                </a>
+            </div>
+        </div>
+    </div>
 
-            return name.includes(searchValue);
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-md border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-3 group">
+                    <div class="w-12 h-12 bg-gradient-to-tr from-saffron-600 to-saffron-400 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-saffron-500/25 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-saffron-600 bg-saffron-50 px-2 py-0.5 rounded border border-saffron-200">महा ई-सेवा केंद्र</span>
+                        <h1 class="text-lg sm:text-2xl font-extrabold text-navy-900 leading-tight">आदिती मल्टी सर्विसेस</h1>
+                        <p class="text-xs text-slate-500 font-semibold">मादणी (सिल्लोड) | ऑनलाईन डिजिटल केंद्र</p>
+                    </div>
+                </a>
 
+                <!-- Desktop Nav Navigation -->
+                <nav class="hidden lg:flex items-center space-x-6 text-base font-bold text-slate-700">
+                    <a href="#home" class="hover:text-saffron-600 transition-colors py-2">मुख्य पृष्ठ</a>
+                    <a href="#services" class="hover:text-saffron-600 transition-colors py-2">आमच्या सेवा</a>
+                    <a href="#documents" class="hover:text-saffron-600 transition-colors py-2">कागदपत्रे यादी</a>
+                    <a href="#why-us" class="hover:text-saffron-600 transition-colors py-2">वैशिष्ट्ये</a>
+                    <a href="#token" class="hover:text-saffron-600 transition-colors py-2">अपॉइंटमेंट</a>
+                    <a href="#contact" class="hover:text-saffron-600 transition-colors py-2">संपर्क</a>
+                </nav>
+
+                <!-- Action Button -->
+                <div class="hidden sm:block">
+                    <a href="#token" class="bg-saffron-500 hover:bg-saffron-600 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-saffron-500/30 transition-all hover:scale-105 flex items-center gap-2">
+                        <i class="fa-solid fa-ticket"></i> टोकन बुकिंग
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="lg:hidden flex items-center gap-2">
+                    <button id="menu-btn" class="text-navy-900 hover:text-saffron-600 p-2 rounded-lg focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3 shadow-2xl">
+            <a href="#home" class="block py-2 text-slate-800 font-bold border-b border-slate-100 hover:text-saffron-600">मुख्य पृष्ठ (Home)</a>
+            <a href="#services" class="block py-2 text-slate-800 font-bold border-b border-slate-100 hover:text-saffron-600">आमच्या सेवा (Services)</a>
+            <a href="#documents" class="block py-2 text-slate-800 font-bold border-b border-slate-100 hover:text-saffron-600">कागदपत्रे यादी (Documents Guide)</a>
+            <a href="#why-us" class="block py-2 text-slate-800 font-bold border-b border-slate-100 hover:text-saffron-600">आमची वैशिष्ट्ये (Why Us)</a>
+            <a href="#token" class="block py-2 text-slate-800 font-bold border-b border-slate-100 hover:text-saffron-600">ऑनलाइन अपॉइंटमेंट (Token)</a>
+            <a href="#contact" class="block py-2 text-slate-800 font-bold border-b border-slate-100 hover:text-saffron-600">संपर्क (Contact)</a>
+            <a href="#token" class="block text-center bg-saffron-500 text-white font-bold py-3 rounded-xl mt-3 shadow-md">
+                <i class="fa-solid fa-calendar-check me-1"></i> ऑनलाइन टोकन मिळवा
+            </a>
+        </div>
+    </header>
+
+    <section id="home" class="bg-hero-gradient text-white relative overflow-hidden py-16 lg:py-24">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-saffron-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 text-saffron-400 text-sm font-semibold">
+                        <i class="fa-solid fa-certificate text-amber-400"></i> अधिकृत महा ई-सेवा व डिजिटल केंद्र
+                    </div>
+
+                    <h1 class="text-3xl sm:text-5xl font-black leading-tight tracking-normal">
+                        तुमच्या सर्व शासकीय व ऑनलाईन कामांसाठी <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-saffron-400 to-amber-200">एकच विश्वासू ठिकाण!</span>
+                    </h1>
+
+                    <p class="text-base sm:text-xl text-slate-200 font-normal max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                        मादणी व सिल्लोड परिसरातील नागरिकांसाठी जलद, अचूक आणि वाजवी दरात ई-सेवा. आधार दुरुस्ती, दाखले, पॅन कार्ड, पीआयसी कार्ड व शासकीय योजनांचे ऑनलाईन अर्ज त्वरित भरून मिळतील.
+                    </p>
+
+                    <div class="pt-1 flex flex-wrap justify-center lg:justify-start gap-3 text-xs sm:text-sm">
+                        <span class="bg-navy-950/80 px-3.5 py-1.5 rounded-xl border border-navy-800 flex items-center gap-2"><i class="fa-solid fa-bolt text-saffron-400"></i> जलद सेवा</span>
+                        <span class="bg-navy-950/80 px-3.5 py-1.5 rounded-xl border border-navy-800 flex items-center gap-2"><i class="fa-solid fa-shield-halved text-emerald-400"></i> १००% सुरक्षित</span>
+                        <span class="bg-navy-950/80 px-3.5 py-1.5 rounded-xl border border-navy-800 flex items-center gap-2"><i class="fa-solid fa-hand-holding-dollar text-amber-400"></i> वाजवी सरकारी दर</span>
+                    </div>
+
+                    <div class="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                        <a href="#services" class="w-full sm:w-auto bg-saffron-500 hover:bg-saffron-600 text-white font-bold px-8 py-3.5 rounded-xl shadow-xl shadow-saffron-600/30 transition-all text-center">
+                            <i class="fa-solid fa-list-check me-2"></i> सर्व सेवा पहा
+                        </a>
+                        <a href="#token" class="w-full sm:w-auto bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-8 py-3.5 rounded-xl backdrop-blur-md transition-all text-center flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-clock me-1"></i> टोकन बुकिंग करा
+                        </a>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5">
+                    <div class="bg-white/95 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl text-slate-900 border border-white/40">
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
+                            <h3 class="text-lg font-bold text-navy-900 flex items-center gap-2">
+                                <i class="fa-solid fa-bullhorn text-saffron-500"></i> केंद्रामधील चालू अपडेट्स
+                            </h3>
+                            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> चालू आहे
+                            </span>
+                        </div>
+
+                        <ul class="space-y-4 text-sm">
+                            <li class="flex items-start gap-3 p-3 rounded-2xl bg-saffron-50/70 border border-saffron-100">
+                                <i class="fa-solid fa-circle-check text-saffron-600 mt-1 text-base"></i>
+                                <div>
+                                    <h4 class="font-bold text-slate-900">पीक विमा ऑनलाईन फॉर्म्स चालू</h4>
+                                    <p class="text-xs text-slate-600 mt-0.5">७/१२, ८-अ व आधार कार्ड घेऊन त्वरित भेट द्या.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3 p-3 rounded-2xl bg-blue-50/70 border border-blue-100">
+                                <i class="fa-solid fa-circle-check text-blue-600 mt-1 text-base"></i>
+                                <div>
+                                    <h4 class="font-bold text-slate-900">स्मार्ट PVC प्लास्टिक कार्ड</h4>
+                                    <p class="text-xs text-slate-600 mt-0.5">आधार, पॅन व ड्रायव्हिंग लायसन्स वॉटरप्रूफ प्लास्टिक कार्डावर मिळेल.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3 p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mt-1 text-base"></i>
+                                <div>
+                                    <h4 class="font-bold text-slate-900">रेशन कार्ड e-KYC व आधार अपडेट</h4>
+                                    <p class="text-xs text-slate-600 mt-0.5">रेशन कार्ड मधील सर्व सदस्यांचे बायोमेट्रिक e-KYC सुरु.</p>
+                                </div>
+                            </li>
+                        </ul>
+
+                        <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+                            <p class="text-xs text-slate-500 font-semibold">संचालक: <span class="font-bold text-navy-900">आदिती मल्टी सर्विसेस टीम, मादणी</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="services" class="py-16 bg-slate-100/70">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-saffron-600 font-bold tracking-wider uppercase text-xs bg-saffron-100 px-3 py-1 rounded-full border border-saffron-200">OUR SERVICES</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-navy-900 mt-2">आमच्या प्रमुख ई-सेवा (Services)</h2>
+                <p class="text-slate-600 mt-2 font-medium">खालीलपैकी कोणत्याही सेवेसाठी लागणारी कागदपत्रे पहा अथवा थेट बुकिंग करा.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- PAN Card -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 card-hover flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-saffron-100 text-saffron-600 rounded-2xl flex items-center justify-center text-2xl mb-4 font-bold">
+                            <i class="fa-solid fa-address-card"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">नवीन पॅन कार्ड / दुरुस्ती</h3>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">नवीन पॅन कार्ड ३ दिवसात ई-पॅनद्वारे उपलब्ध, तसेच पॅन कार्डमधील नाव/जन्मतारीख सुधारणा.</p>
+                    </div>
+                    <div class="space-y-2 pt-4 border-t border-slate-100">
+                        <button onclick="openDocModal('पॅन कार्ड (PAN Card)', ['आधार कार्ड (Aadhaar Card)', 'पासपोर्ट आकाराचे २ फोटो', 'चालू मोबाईल नंबर'])" class="w-full text-saffron-600 text-xs font-bold py-2 px-3 rounded-xl bg-saffron-50 hover:bg-saffron-100 transition-colors flex items-center justify-between">
+                            <span><i class="fa-solid fa-paperclip me-1"></i> कागदपत्रे पहा</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                        <a href="#token" onclick="selectServiceInForm('नवीन पॅन कार्ड / दुरुस्ती (PAN Card)')" class="w-full block text-center bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold py-2.5 rounded-xl transition-colors">
+                            अर्ज करा / टोकन घ्या
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Crop Insurance -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 card-hover flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-4 font-bold">
+                            <i class="fa-solid fa-wheat-awn"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">पिक विमा अर्ज (Crop Insurance)</h3>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">रब्बी व खरीप हंगामातील सर्व पिकांचा शासकीय ऑनलाईन पीक विमा त्वरित भरून मिळेल.</p>
+                    </div>
+                    <div class="space-y-2 pt-4 border-t border-slate-100">
+                        <button onclick="openDocModal('पिक विमा अर्ज', ['डिजिटल ७/१२ व ८-अ उतारा', 'आधार कार्ड', 'बँक पासबुक झेरॉक्स', 'पेरणी प्रमाणपत्र'])" class="w-full text-emerald-600 text-xs font-bold py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 transition-colors flex items-center justify-between">
+                            <span><i class="fa-solid fa-paperclip me-1"></i> कागदपत्रे पहा</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                        <a href="#token" onclick="selectServiceInForm('पिक विमा अर्ज (Crop Insurance)')" class="w-full block text-center bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold py-2.5 rounded-xl transition-colors">
+                            अर्ज करा / टोकन घ्या
+                        </a>
+                    </div>
+                </div>
+
+                <!-- PVC Card -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 card-hover flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-2xl mb-4 font-bold">
+                            <i class="fa-solid fa-id-card"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">PVC स्मार्ट कार्ड प्रिंटिंग</h3>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">आधार कार्ड, पॅन कार्ड, ड्रायव्हिंग लायसन्स वॉटरप्रूफ उच्च दर्जाच्या PVC प्लास्टिक कार्डवर प्रिंट.</p>
+                    </div>
+                    <div class="space-y-2 pt-4 border-t border-slate-100">
+                        <button onclick="openDocModal('PVC प्लास्टिक कार्ड', ['आधार / पॅन कार्डचा नंबर किंवा PDF', 'ओळखपत्र पुरावा'])" class="w-full text-rose-600 text-xs font-bold py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 transition-colors flex items-center justify-between">
+                            <span><i class="fa-solid fa-paperclip me-1"></i> कागदपत्रे पहा</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                        <a href="#token" onclick="selectServiceInForm('PVC प्लास्टिक कार्ड प्रिंटिंग')" class="w-full block text-center bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold py-2.5 rounded-xl transition-colors">
+                            कार्ड प्रिंट करा
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Ration Card e-KYC -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 card-hover flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-4 font-bold">
+                            <i class="fa-solid fa-bowl-rice"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">रेशन कार्ड e-KYC व नाव नोंद</h3>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">रेशन कार्डमधील सर्व सदस्यांचे ई-केवायसी करणे, नवीन नाव वाढवणे किंवा कमी करणे.</p>
+                    </div>
+                    <div class="space-y-2 pt-4 border-t border-slate-100">
+                        <button onclick="openDocModal('रेशन कार्ड e-KYC', ['मूळ रेशन कार्ड', 'सर्व सदस्यांचे आधार कार्ड', 'मोबाईल नंबर'])" class="w-full text-amber-600 text-xs font-bold py-2 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 transition-colors flex items-center justify-between">
+                            <span><i class="fa-solid fa-paperclip me-1"></i> कागदपत्रे पहा</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                        <a href="#token" onclick="selectServiceInForm('रेशन कार्ड e-KYC / दुरुस्ती')" class="w-full block text-center bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold py-2.5 rounded-xl transition-colors">
+                            अर्ज करा / टोकन घ्या
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Certificates -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 card-hover flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-4 font-bold">
+                            <i class="fa-solid fa-file-contract"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">शासकीय दाखले (Certificates)</h3>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">उत्पन्नाचा दाखला (१ व ३ वर्ष), रहिवासी प्रमाणपत्र, जातीचा दाखला, डोमासाईल प्रमाणपत्र.</p>
+                    </div>
+                    <div class="space-y-2 pt-4 border-t border-slate-100">
+                        <button onclick="openDocModal('शासकीय दाखले', ['आधार कार्ड', 'रेशन कार्ड', 'तलाठी / ग्रामसेवक उत्पन्न पुरावा', 'शाळा सोडल्याचा दाखला'])" class="w-full text-blue-600 text-xs font-bold py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors flex items-center justify-between">
+                            <span><i class="fa-solid fa-paperclip me-1"></i> कागदपत्रे पहा</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                        <a href="#token" onclick="selectServiceInForm('शासकीय दाखले (उत्पन्न / रहिवासी / जात)')" class="w-full block text-center bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold py-2.5 rounded-xl transition-colors">
+                            अर्ज करा / टोकन घ्या
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Maha ID Card -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 card-hover flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl mb-4 font-bold">
+                            <i class="fa-solid fa-id-badge"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">महा आयडी कार्ड (Maha ID Card)</h3>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">विद्यार्थी, कामगार व नागरिकांसाठी अधिकृत महा आयडी कार्ड नोंदणी व स्मार्ट प्रिंटिंग.</p>
+                    </div>
+                    <div class="space-y-2 pt-4 border-t border-slate-100">
+                        <button onclick="openDocModal('महा आयडी कार्ड', ['आधार कार्ड', 'पासपोर्ट फोटो', 'शाळा/कॉलेज किंवा नोकरी पुरावा'])" class="w-full text-indigo-600 text-xs font-bold py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 transition-colors flex items-center justify-between">
+                            <span><i class="fa-solid fa-paperclip me-1"></i> कागदपत्रे पहा</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                        <a href="#token" onclick="selectServiceInForm('महा आयडी कार्ड (Maha ID)')" class="w-full block text-center bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold py-2.5 rounded-xl transition-colors">
+                            अर्ज करा / टोकन घ्या
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Aadhaar Services -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 card-hover flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-cyan-100 text-cyan-600 rounded-2xl flex items-center justify-center text-2xl mb-4 font-bold">
+                            <i class="fa-solid fa-fingerprint"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">आधार सेवा व अपडेट</h3>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">आधार कार्ड डाउनलोड, पत्ता बदलणे, बायोमेट्रिक ई-केवायसी व आधार बँक लिंक तपासणे.</p>
+                    </div>
+                    <div class="space-y-2 pt-4 border-t border-slate-100">
+                        <button onclick="openDocModal('आधार सेवा', ['आधार नंबर किंवा Enrolment Slip', 'लिंक असलेला मोबाईल नंबर (OTP साठी)'])" class="w-full text-cyan-600 text-xs font-bold py-2 px-3 rounded-xl bg-cyan-50 hover:bg-cyan-100 transition-colors flex items-center justify-between">
+                            <span><i class="fa-solid fa-paperclip me-1"></i> कागदपत्रे पहा</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                        <a href="#token" onclick="selectServiceInForm('आधार सेवा व अपडेट')" class="w-full block text-center bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold py-2.5 rounded-xl transition-colors">
+                            अर्ज करा / टोकन घ्या
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Online Forms -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 card-hover flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-4 font-bold">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">इतर सर्व ऑनलाईन फॉर्म्स</h3>
+                        <p class="text-slate-600 text-sm mb-4 leading-relaxed">सरकारी नोकरी भरती, हॉल तिकिटे, शिष्यवृत्ती (Scholarship) व कॉलेज प्रवेश अर्ज.</p>
+                    </div>
+                    <div class="space-y-2 pt-4 border-t border-slate-100">
+                        <button onclick="openDocModal('ऑनलाईन फॉर्म्स', ['शैक्षणिक गुणपत्रक (Marksheet)', 'फोटो व सही', 'जातीचा दाखला व आधार'])" class="w-full text-purple-600 text-xs font-bold py-2 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-between">
+                            <span><i class="fa-solid fa-paperclip me-1"></i> कागदपत्रे पहा</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                        <a href="#token" onclick="selectServiceInForm('इतर सर्व ऑनलाईन भरती फॉर्म्स')" class="w-full block text-center bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold py-2.5 rounded-xl transition-colors">
+                            अर्ज करा / टोकन घ्या
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="documents" class="py-16 bg-white">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-10">
+                <span class="text-navy-900 font-bold tracking-wider uppercase text-xs bg-blue-100 px-3 py-1 rounded-full">DOCUMENTS CHECKLIST</span>
+                <h2 class="text-3xl font-extrabold text-navy-900 mt-2">कागदपत्रे शोधक व मार्गदर्शक (Required Documents)</h2>
+                <p class="text-slate-600 mt-2 text-sm">केंद्रावर येण्यापूर्वी आवश्यक असणारी कागदपत्रे तपासा जेणेकरून तुमचे काम एकाच फेरीत होईल.</p>
+            </div>
+
+            <div class="max-w-xl mx-auto mb-8 relative">
+                <div class="relative">
+                    <input type="text" id="docSearchInput" onkeyup="filterDocAccordion()" placeholder="सेवा शोध (उदा. उत्पन्नाचा दाखला, पॅन कार्ड, पीक विमा...)" class="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-slate-300 shadow-sm focus:outline-none focus:border-saffron-500 focus:ring-2 focus:ring-saffron-200 text-slate-800">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                </div>
+            </div>
+
+            <div class="space-y-4" id="docAccordionContainer">
+                <div class="doc-item border border-slate-200 rounded-2xl overflow-hidden shadow-sm" data-keywords="उत्पन्नाचा दाखला income certificate">
+                    <button onclick="toggleDocAccordion('doc1')" class="w-full flex items-center justify-between p-5 bg-slate-50 hover:bg-slate-100 font-bold text-navy-900 text-left transition-colors">
+                        <span class="flex items-center gap-3 text-base sm:text-lg"><i class="fa-solid fa-file-invoice text-saffron-500"></i> उत्पन्नाचा दाखला (Income Certificate)</span>
+                        <i id="doc1-icon" class="fa-solid fa-chevron-down transition-transform text-slate-400"></i>
+                    </button>
+                    <div id="doc1" class="hidden p-5 bg-white border-t border-slate-200 text-slate-700 space-y-2 text-sm">
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> अर्जदाराचे आधार कार्ड (Aadhaar Card)</p>
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> रेशन कार्डची छायांकित प्रत (Ration Card)</p>
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> तलाठी किंवा ग्रामसेवक यांचा मूळ उत्पन्न दाखला</p>
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> पासपोर्ट आकाराचा १ रंगीत फोटो</p>
+                    </div>
+                </div>
+
+                <div class="doc-item border border-slate-200 rounded-2xl overflow-hidden shadow-sm" data-keywords="पॅन कार्ड pan card">
+                    <button onclick="toggleDocAccordion('doc2')" class="w-full flex items-center justify-between p-5 bg-slate-50 hover:bg-slate-100 font-bold text-navy-900 text-left transition-colors">
+                        <span class="flex items-center gap-3 text-base sm:text-lg"><i class="fa-solid fa-address-card text-saffron-500"></i> नवीन पॅन कार्ड (New PAN Card)</span>
+                        <i id="doc2-icon" class="fa-solid fa-chevron-down transition-transform text-slate-400"></i>
+                    </button>
+                    <div id="doc2" class="hidden p-5 bg-white border-t border-slate-200 text-slate-700 space-y-2 text-sm">
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> आधार कार्ड मूळ व झेरॉक्स प्रत</p>
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> चालू मोबाईल नंबर (OTP पडताळणीसाठी)</p>
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> २ पासपोर्ट आकाराचे नवीन फोटो</p>
+                    </div>
+                </div>
+
+                <div class="doc-item border border-slate-200 rounded-2xl overflow-hidden shadow-sm" data-keywords="पीक विमा crop insurance farmer">
+                    <button onclick="toggleDocAccordion('doc3')" class="w-full flex items-center justify-between p-5 bg-slate-50 hover:bg-slate-100 font-bold text-navy-900 text-left transition-colors">
+                        <span class="flex items-center gap-3 text-base sm:text-lg"><i class="fa-solid fa-wheat-awn text-emerald-600"></i> पीक विमा व शेतकरी योजना (Crop Insurance)</span>
+                        <i id="doc3-icon" class="fa-solid fa-chevron-down transition-transform text-slate-400"></i>
+                    </button>
+                    <div id="doc3" class="hidden p-5 bg-white border-t border-slate-200 text-slate-700 space-y-2 text-sm">
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> चालू वर्षाचा डिजिटल ७/१२ व ८-अ उतारा</p>
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> आधार कार्ड व बँक पासबुक (Aadhaar Linked Bank Account)</p>
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> पिकांचे पेरणी प्रमाणपत्र (स्वयंघोषणा पत्र)</p>
+                    </div>
+                </div>
+
+                <div class="doc-item border border-slate-200 rounded-2xl overflow-hidden shadow-sm" data-keywords="रहिवासी जात प्रमाणपत्र caste domicile certificate">
+                    <button onclick="toggleDocAccordion('doc4')" class="w-full flex items-center justify-between p-5 bg-slate-50 hover:bg-slate-100 font-bold text-navy-900 text-left transition-colors">
+                        <span class="flex items-center gap-3 text-base sm:text-lg"><i class="fa-solid fa-award text-blue-600"></i> जात प्रमाणपत्र व डोमासाईल (Caste/Residence)</span>
+                        <i id="doc4-icon" class="fa-solid fa-chevron-down transition-transform text-slate-400"></i>
+                    </button>
+                    <div id="doc4" class="hidden p-5 bg-white border-t border-slate-200 text-slate-700 space-y-2 text-sm">
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> शाळा सोडल्याचा दाखला (TC / School Leaving)</p>
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> वडील किंवा आजोबांचे वंशावळ पुरावे / जातीचा दाखला</p>
+                        <p class="flex items-center gap-2.5"><i class="fa-solid fa-circle-check text-emerald-500"></i> रहिवासी पुरावा (रेशन कार्ड, लाईट बिल किंवा आधार)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="why-us" class="py-16 bg-slate-100/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-saffron-600 font-bold tracking-wider uppercase text-xs bg-saffron-100 px-3 py-1 rounded-full border border-saffron-200">WHY CHOOSE US</span>
+                <h2 class="text-3xl font-extrabold text-navy-900 mt-2">आदिती मल्टी सर्विसेस का निवडावी?</h2>
+                <p class="text-slate-600 mt-1">मादणी आणि सिल्लोड परिसरातील हजारो नागरिकांचे विश्वासू महा ई-सेवा केंद्र</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 text-center space-y-3 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-14 h-14 bg-saffron-100 text-saffron-600 rounded-2xl flex items-center justify-center text-2xl mx-auto font-bold">
+                        <i class="fa-solid fa-gauge-high"></i>
+                    </div>
+                    <h3 class="font-extrabold text-navy-900 text-lg">वेगाची खात्री</h3>
+                    <p class="text-slate-600 text-xs leading-relaxed">कामाचा अनुभव आणि आधुनिक प्रणालीमुळे तुमचे अर्ज विनाविलंब जलद सबमिट केले जातात.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 text-center space-y-3 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mx-auto font-bold">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h3 class="font-extrabold text-navy-900 text-lg">१००% अचूकता</h3>
+                    <p class="text-slate-600 text-xs leading-relaxed">अर्जामध्ये नाव, जन्मतारीख किंवा पत्त्यात कोणतीही चूक न करता काळजीपूर्वक नोंदणी.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 text-center space-y-3 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mx-auto font-bold">
+                        <i class="fa-solid fa-coins"></i>
+                    </div>
+                    <h3 class="font-extrabold text-navy-900 text-lg">वाजवी सरकारी दर</h3>
+                    <p class="text-slate-600 text-xs leading-relaxed">शासकीय नियमांनुसार पारदर्शक व कमीत कमी सेवा शुल्कात परिपूर्ण काम.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 text-center space-y-3 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mx-auto font-bold">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <h3 class="font-extrabold text-navy-900 text-lg">उत्तम मार्गदर्शन</h3>
+                    <p class="text-slate-600 text-xs leading-relaxed">शासकीय योजनांचा योग्य लाभ मिळावा यासाठी मोफत सल्ला व सहकार्य.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="token" class="py-16 bg-navy-950 text-white relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-10">
+                <span class="bg-saffron-500/20 text-saffron-400 font-bold tracking-wider uppercase text-xs px-3 py-1 rounded-full border border-saffron-500/30">ONLINE TOKEN SYSTEM</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold mt-3">ऑनलाइन टोकन व अपॉइंटमेंट घ्या</h2>
+                <p class="text-slate-300 mt-2 text-sm sm:text-base">रांगेत उभे राहण्याची गरज नाही! आधीच टोकन बुक करा व वेळेवर सेवा मिळवा.</p>
+            </div>
+
+            <div class="bg-navy-900/90 backdrop-blur-md p-6 sm:p-10 rounded-3xl border border-navy-800 shadow-2xl">
+                <form id="tokenForm" onsubmit="handleTokenSubmit(event)" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-300">पूर्ण नाव (Full Name) *</label>
+                            <input type="text" id="custName" required placeholder="उदा. राहुल रामराव पाटील" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-saffron-500 focus:ring-1 focus:ring-saffron-500 text-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-300">मोबाईल नंबर (Mobile Number) *</label>
+                            <input type="tel" id="custPhone" pattern="[0-9]{10}" required placeholder="१० अंकी मोबाईल क्रमांक" class="w-full bg-navy-950 border border-navy-800 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-saffron-500 focus:ring-1 focus:ring-saffron-500 text-sm">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-300">आवश्यक सेवा निवडा *</label>
+                            <select id="custService" required class="w-full bg-navy-950 border border-navy-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-saffron-500 text-sm">
+                                <option value="" disabled selected>-- सेवा निवडा --</option>
+                                <option value="नवीन पॅन कार्ड / दुरुस्ती (PAN Card)">नवीन पॅन कार्ड / दुरुस्ती</option>
+                                <option value="पिक विमा अर्ज (Crop Insurance)">पिक विमा अर्ज</option>
+                                <option value="PVC प्लास्टिक कार्ड प्रिंटिंग">PVC स्मार्ट कार्ड प्रिंटिंग</option>
+                                <option value="रेशन कार्ड e-KYC / दुरुस्ती">रेशन कार्ड e-KYC</option>
+                                <option value="शासकीय दाखले (उत्पन्न / रहिवासी / जात)">शासकीय दाखले</option>
+                                <option value="महा आयडी कार्ड (Maha ID)">महा आयडी कार्ड</option>
+                                <option value="आधार सेवा व अपडेट">आधार सेवा</option>
+                                <option value="इतर सर्व ऑनलाईन भरती फॉर्म्स">इतर ऑनलाईन फॉर्म</option>
+                            </select>
+                        </div>
+
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-300">भेट देण्याची तारीख *</label>
+                            <input type="date" id="custDate" required class="w-full bg-navy-950 border border-navy-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-saffron-500 text-sm">
+                        </div>
+
+                        <div class="sm:col-span-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-300">अपेक्षित वेळ (Time) *</label>
+                            <select id="custTime" required class="w-full bg-navy-950 border border-navy-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-saffron-500 text-sm">
+                                <option value="सकाळी ०९:०० ते १२:००">सकाळी ०९:०० ते १२:००</option>
+                                <option value="दुपारी १२:०० ते ०४:००">दुपारी १२:०० ते ०४:००</option>
+                                <option value="संध्याकाळी ०४:०० ते ०८:००">संध्याकाळी ०४:०० ते ०८:००</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-300">काही टीप किंवा संदेश (Optional)</label>
+                        <textarea id="custMsg" rows="2" placeholder="तुमची काही विशेष विचारणा असल्यास लिहा..." class="w-full bg-navy-950 border border-navy-800 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-saffron-500 text-sm"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-600 hover:to-saffron-700 text-white font-extrabold py-4 rounded-xl shadow-xl shadow-saffron-500/25 transition-all text-center text-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-ticket"></i> टोकन जनरेट करा व कन्फर्म करा
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="py-16 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+                <div class="lg:col-span-5 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-saffron-600 bg-saffron-50 px-3 py-1 rounded-full border border-saffron-200">CONTACT DETAILS</span>
+                        <h2 class="text-3xl font-extrabold text-navy-900 mt-2 mb-6">संपर्क व दुकानाचे स्थान</h2>
+
+                        <div class="space-y-6">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 bg-saffron-100 text-saffron-600 rounded-2xl flex items-center justify-center text-xl shrink-0 font-bold">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-navy-900">केंद्राचा पत्ता:</h4>
+                                    <p class="text-slate-600 text-sm mt-1 leading-relaxed font-medium">
+                                        आदिती मल्टी सर्विसेस @ महा ई-सेवा केंद्र,<br>
+                                        मु. पो. मादणी,<br>
+                                        ता. सिल्लोड, जि. छत्रपती संभाजीनगर
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl shrink-0 font-bold">
+                                    <i class="fa-solid fa-phone"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-navy-900">संपर्क क्रमांक:</h4>
+                                    <p class="text-slate-600 text-sm mt-1">
+                                        <a href="tel:+918237821650" class="hover:text-saffron-600 font-bold text-slate-800">+91 82378 21650</a>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl shrink-0 font-bold">
+                                    <i class="fa-regular fa-clock"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-navy-900">कामाची वेळ:</h4>
+                                    <p class="text-slate-600 text-sm mt-1">
+                                        सोमवार ते शनिवार: सकाळी ०९:०० ते रात्री ०८:००<br>
+                                        रविवार: सकाळी १०:०० ते दुपारी ०२:००
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+                        <a href="tel:+918237821650" class="bg-navy-900 hover:bg-navy-800 text-white font-bold py-3 px-4 rounded-xl text-center text-sm transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-phone"></i> कॉल करा
+                        </a>
+                        <a href="https://wa.me/918237821650?text=नमस्कार%20आदिती%20मल्टी%20सर्व्हिसेस,%20मला%20माहिती%20हवी%20आहे." target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-center text-sm transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-base"></i> व्हॉट्सॲप
+                        </a>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
+                    <div class="w-full h-full min-h-[360px] bg-slate-100 rounded-2xl border border-dashed border-slate-300 flex flex-col items-center justify-center p-6 text-center">
+                        <div class="w-16 h-16 bg-saffron-100 text-saffron-600 rounded-full flex items-center justify-center text-3xl mb-4">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-navy-900 mb-2">गूगल मॅपवर स्थान शोधा</h3>
+                        <p class="text-sm text-slate-500 max-w-sm mb-6">आदिती मल्टी सर्विसेस, मु. पो. मादणी, ता. सिल्लोड, जि. छत्रपती संभाजीनगर.</p>
+                        <a href="https://maps.google.com/?q=Madani+Sillod" target="_blank" class="bg-saffron-500 hover:bg-saffron-600 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-md flex items-center gap-2">
+                            <i class="fa-solid fa-diamond-turn-right"></i> Google Maps मध्ये दिशा दाखवा
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-navy-950 text-slate-400 py-12 border-t border-navy-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-navy-900">
+                <div>
+                    <h3 class="text-white font-extrabold text-lg mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-building-columns text-saffron-500"></i> आदिती मल्टी सर्विसेस
+                    </h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        मु. पो. मादणी, ता. सिल्लोड, जि. छत्रपती संभाजीनगर परिसरातील नागरिकांसाठी शासकीय दाखले, आधार दुरुस्ती, ऑनलाईन भरती अर्ज व डिजिटल सेवांचे विश्वासू केंद्र.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-sm mb-3">जलद लिंक्स</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="#services" class="hover:text-saffron-400 transition-colors">आमच्या प्रमुख सेवा</a></li>
+                        <li><a href="#documents" class="hover:text-saffron-400 transition-colors">लागणारी कागदपत्रे यादी</a></li>
+                        <li><a href="#token" class="hover:text-saffron-400 transition-colors">ऑनलाइन अपॉइंटमेंट घ्या</a></li>
+                        <li><a href="#contact" class="hover:text-saffron-400 transition-colors">केंद्राचा पत्ता</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-sm mb-3">महत्वाची सूचना</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        * सर्व शासकीय अर्ज अधिकृत शासकीय पोर्टलवरूनच भरले जातात. शासकीय नियमानुसार फी आकारली जाते.
+                    </p>
+                </div>
+            </div>
+
+            <div class="text-center text-xs text-slate-500">
+                &copy; <span id="year"></span> आदिती मल्टी सर्विसेस, मु. पो. मादणी, ता. सिल्लोड, जि. छत्रपती संभाजीनगर. सर्व हक्क सुरक्षित.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Token Confirmation Receipt Modal -->
+    <div id="tokenModal" class="fixed inset-0 bg-navy-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 text-slate-900 shadow-2xl relative animate-fade-in">
+            <button onclick="closeTokenModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="text-center pb-4 border-b border-slate-100">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-navy-900">टोकन यशस्वीरीत्या बुक झाले!</h3>
+                <p class="text-xs text-slate-500 mt-1">तुमची अपॉइंटमेंट नोंदवली गेली आहे.</p>
+            </div>
+
+            <div class="my-5 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs sm:text-sm space-y-2.5">
+                <div class="flex justify-between border-b border-slate-200 pb-2">
+                    <span class="text-slate-500">टोकन नंबर:</span>
+                    <span id="resTokenNo" class="font-black text-saffron-600 font-mono text-base">AMS-2026</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">ग्राहकाचे नाव:</span>
+                    <span id="resName" class="font-bold text-slate-800">--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">मोबाईल क्रमांक:</span>
+                    <span id="resPhone" class="font-bold text-slate-800">--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">निवडलेली सेवा:</span>
+                    <span id="resService" class="font-bold text-slate-800">--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">तारीख व वेळ:</span>
+                    <span id="resDate" class="font-bold text-slate-800">--</span>
+                </div>
+            </div>
+
+            <div class="space-y-2.5">
+                <button onclick="sendToWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> व्हॉट्सॲपवर माहिती पाठवा
+                </button>
+                <button onclick="closeTokenModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition-colors">
+                    बंद करा (Close)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Info Modal -->
+    <div id="docModal" class="fixed inset-0 bg-navy-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 text-slate-900 shadow-2xl relative">
+            <button onclick="closeDocModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div class="w-10 h-10 bg-saffron-100 text-saffron-600 rounded-xl flex items-center justify-center text-lg font-bold">
+                    <i class="fa-solid fa-folder-open"></i>
+                </div>
+                <div>
+                    <h3 id="docModalTitle" class="text-base font-extrabold text-navy-900">लागणारी कागदपत्रे</h3>
+                    <p class="text-xs text-slate-500">सोबत आणावयाचे मूळ किंवा झेरॉक्स पुरावे</p>
+                </div>
+            </div>
+
+            <div class="my-4">
+                <ul id="docModalList" class="space-y-2 text-xs sm:text-sm text-slate-700">
+                </ul>
+            </div>
+
+            <button onclick="closeDocModal()" class="w-full bg-navy-900 hover:bg-navy-800 text-white font-bold py-2.5 rounded-xl text-xs transition-colors">
+                समजले (Close)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
         });
 
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+        });
 
-    drawTable(filtered);
-
-}
-
-
-/* Show all */
-
-function showAll(){
-
-    document.getElementById("search").value = "";
-
-    drawTable(allRows);
-
-}
-
-
-/* Clear */
-
-function clearSearch(){
-
-    document.getElementById("search").value = "";
-
-    drawTable(allRows);
-
-    document.getElementById("search").focus();
-
-}
-
-
-/* Search while typing */
-
-document
-.getElementById("search")
-.addEventListener(
-    "input",
-    searchName
-);
-
-
-/*
-================================================
-DATA LOAD
-================================================
-
-यानंतर data.html या फाइलमधून
-पूर्ण सरकारी यादी वाचली जाईल.
-*/
-
-fetch("data.html")
-
-.then(function(response){
-
-    if(!response.ok){
-
-        throw new Error(
-            "data.html सापडली नाही"
-        );
-
-    }
-
-    return response.text();
-
-})
-
-.then(function(html){
-
-    const parser =
-        new DOMParser();
-
-    const documentData =
-        parser.parseFromString(
-            html,
-            "text/html"
-        );
-
-
-    const tables =
-        documentData.querySelectorAll("table");
-
-
-    if(tables.length === 0){
-
-        throw new Error(
-            "Table सापडली नाही"
-        );
-
-    }
-
-
-    /*
-    सरकारी पेजमधील योग्य table शोधणे
-    */
-
-    let sourceTable = tables[0];
-
-    for(let table of tables){
-
-        if(
-            table.innerText.includes(
-                "Name of Applicant"
-            )
-        ){
-
-            sourceTable = table;
-
-            break;
-
+        const dateInput = document.getElementById('custDate');
+        if (dateInput) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            dateInput.value = tomorrow.toISOString().split('T')[0];
         }
 
-    }
-
-
-    const trs =
-        Array.from(
-            sourceTable.querySelectorAll("tr")
-        );
-
-
-    /*
-    Header शोधणे
-    */
-
-    let headerIndex =
-        trs.findIndex(function(tr){
-
-            return /Name of Applicant/i
-                .test(tr.innerText);
-
-        });
-
-
-    if(headerIndex < 0){
-
-        headerIndex = 0;
-
-    }
-
-
-    /*
-    Header तयार
-    */
-
-    headers =
-        Array.from(
-            trs[headerIndex]
-            .querySelectorAll("th,td")
-        )
-        .map(function(cell){
-
-            return cleanText(
-                cell.innerText
-            );
-
-        });
-
-
-    /*
-    Name column शोधणे
-    */
-
-    nameColumn =
-        headers.findIndex(
-            function(header){
-
-                return (
-                    /Name of Applicant/i
-                    .test(header)
-                    ||
-                    /^Name$/i
-                    .test(header)
-                );
-
+        function selectServiceInForm(serviceName) {
+            const selectElem = document.getElementById('custService');
+            if (selectElem) {
+                selectElem.value = serviceName;
             }
-        );
+        }
 
+        function toggleDocAccordion(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById(id + '-icon');
 
-    /*
-    पूर्ण यादी
-    */
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
 
-    allRows =
-        trs
-        .slice(headerIndex + 1)
-        .map(function(tr){
+        function filterDocAccordion() {
+            const query = document.getElementById('docSearchInput').value.toLowerCase();
+            const items = document.querySelectorAll('.doc-item');
 
-            return Array.from(
-                tr.querySelectorAll("th,td")
-            )
-            .map(function(cell){
+            items.forEach(item => {
+                const keywords = item.getAttribute('data-keywords').toLowerCase();
+                const text = item.innerText.toLowerCase();
 
-                return cleanText(
-                    cell.innerText
-                );
+                if (keywords.includes(query) || text.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
 
+        function openDocModal(title, docsArray) {
+            document.getElementById('docModalTitle').textContent = title;
+            const list = document.getElementById('docModalList');
+            list.innerHTML = '';
+
+            docsArray.forEach(doc => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-100';
+                li.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i> <span>${doc}</span>`;
+                list.appendChild(li);
             });
 
-        })
-        .filter(function(row){
+            document.getElementById('docModal').classList.remove('hidden');
+        }
 
-            return row.length > 0;
+        function closeDocModal() {
+            document.getElementById('docModal').classList.add('hidden');
+        }
 
-        });
+        let lastTokenDetails = {};
 
+        function handleTokenSubmit(e) {
+            e.preventDefault();
 
-    /*
-    Total
-    */
+            const name = document.getElementById('custName').value;
+            const phone = document.getElementById('custPhone.').value;
+            const service = document.getElementById('custService').value;
+            const date = document.getElementById('custDate').value;
+            const time = document.getElementById('custTime').value;
+            const msg = document.getElementById('custMsg').value;
 
-    document.getElementById("total")
-        .innerText =
-        allRows.length;
+            const randomToken = 'AMS-' + Math.floor(1000 + Math.random() * 9000);
 
+            document.getElementById('resTokenNo').textContent = randomToken;
+            document.getElementById('resName').textContent = name;
+            document.getElementById('resPhone').textContent = phone;
+            document.getElementById('resService').textContent = service;
+            document.getElementById('resDate').textContent = `${date} (${time})`;
 
-    /*
-    Show full list
-    */
+            lastTokenDetails = { randomToken, name, phone, service, date, time, msg };
 
-    drawTable(allRows);
+            document.getElementById('tokenModal').classList.remove('hidden');
+        }
 
-})
+        function closeTokenModal() {
+            document.getElementById('tokenModal').classList.add('hidden');
+            document.getElementById('tokenForm').reset();
+        }
 
-.catch(function(error){
-
-    console.error(error);
-
-    document.getElementById("status")
-        .innerText =
-        "❌ data.html फाइल सापडली नाही.";
-
-});
-
-</script>
-
+        function sendToWhatsApp() {
+            const text = `नमस्कार आदिती मल्टी सर्विसेस,%0A%0A*नवीन टोकन बुकिंग डिटेल्स:*%0A- *टोकन क्र:* ${lastTokenDetails.randomToken}%0A- *नाव:* ${lastTokenDetails.name}%0A- *मोबाईल:* ${lastTokenDetails.phone}%0A- *सेवा:* ${lastTokenDetails.service}%0A- *तारीख व वेळ:* ${lastTokenDetails.date} [${lastTokenDetails.time}]%0A- *संदेश:* ${lastTokenDetails.msg || 'काही नाही'}`;
+            window.open(`https://wa.me/918237821650?text=${text}`, '_blank');
+        }
+    </script>
 </body>
 </html>
